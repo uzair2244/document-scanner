@@ -1,0 +1,40 @@
+{
+  "name": "@uziee/document-scanner",
+  "version": "1.0.0",
+  "description": "A React component for document scanning with OpenCV.js",
+  "type": "module",
+  "main": "dist/index.js",
+  "module": "dist/index.es.js",
+  "exports": {
+    ".": {
+      "import": "./dist/index.es.js",
+      "require": "./dist/index.js"
+    }
+  },
+  "files": ["dist"],
+  "peerDependencies": {
+    "react": "^16.8.0 || ^17.0.0 || ^18.0.0",
+    "react-dom": "^16.8.0 || ^17.0.0 || ^18.0.0"
+  },
+  "dependencies": {
+    "lucide-react": "^0.263.1"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-react": "^4.0.0",
+    "vite": "^4.3.9",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0"
+  },
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "keywords": ["react", "document", "scanner", "opencv", "camera"],
+  "author": "Uzair Shahid",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/uziee/document-scanner.git"
+  }
+}
