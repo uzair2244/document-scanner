@@ -12,7 +12,13 @@ function App() {
       ) : (
         <div>
           <h3>Scanned Result:</h3>
-          <img src={scannedImage} style={{ width: '100%', maxWidth: '400px', border: '2px solid #ccc' }} />
+          {scannedImage?.map ((imgSrc, index) => (
+            <img
+              key={index}
+              src={imgSrc}
+              style={{ width: '100%', maxWidth: '400px', border: '2px solid #ccc', margin: '10px' }}
+            />
+          ))}
           <br />
           <button onClick={() => setScannedImage(null)}>Scan Again</button>
         </div>
