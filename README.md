@@ -16,3 +16,35 @@ A high-performance, lightweight React component for real-time document detection
 
 ```bash
 npm install @uziee/document-scanner
+```
+
+## 📖 Usage
+
+Import the `DocumentScanner` component into your React application and provide an `onCapture` callback to handle the scanned images.
+
+```jsx
+import React, { useState } from 'react';
+import DocumentScanner from '@uziee/document-scanner';
+
+function App() {
+  const [showScanner, setShowScanner] = useState(false);
+
+  const handleCapture = (images) => {
+    images.forEach((image, index) => {
+      console.log(`Captured image ${index + 1}:`, image);
+    });
+    setShowScanner(false);
+  };
+
+  return (
+    <div>
+      <button onClick={() => setShowScanner(true)}>Scan Document</button>
+      {showScanner && <DocumentScanner onCapture={handleCapture} />}
+    </div>
+  );
+}
+
+export default App;
+```
+
+The component renders a full-screen camera interface for document scanning. It detects documents in real-time, applies stability filtering, and captures high-resolution images with perspective correction. Ensure your application has camera permissions enabled for the component to function properly.
