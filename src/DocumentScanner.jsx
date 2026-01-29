@@ -1,7 +1,7 @@
 import React, { useRef, useEffect, useState } from 'react';
 import { MobileDocumentDetector } from './utils/MobileDocumentDetector';
 
-const DocumentScanner = ({ onCapture }) => {
+const DocumentScanner = ({ onCapture, onClose }) => {
   const videoRef = useRef(null);
   const canvasRef = useRef(null);
 
@@ -156,13 +156,44 @@ const DocumentScanner = ({ onCapture }) => {
       <svg viewBox="0 0 100 100" preserveAspectRatio="none"
         style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', pointerEvents: 'none', zIndex: 10 }}>
         {points && (
-          <polygon points={getPolygonPoints()} fill="rgba(0, 255, 70, 0.15)" stroke="#00FF46" strokeWidth="0.5"
+          <polygon points={getPolygonPoints()} fill="rgba(0, 255, 70, 0.15)" stroke="#00FF46" strokeWidth="0.2"
             style={{ transition: 'all 0.1s ease-out' }} />
         )}
       </svg>
 
       {/* Top Status */}
-      <div style={{ position: 'absolute', top: 0, width: '100%', padding: '40px 0 20px', background: 'linear-gradient(rgba(0,0,0,0.6), transparent)', textAlign: 'center', zIndex: 20 }}>
+      <div style={{ position: 'absolute', top: 0, width: '100%', padding: '40px 16px 20px', background: 'linear-gradient(rgba(0,0,0,0.6), transparent)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 20 }}>
+        {/* Close Button */}
+        {onClose && (
+          <button
+            onClick={onClose}
+            style={{
+              position: 'absolute',
+              right: '16px',
+              top: '40px',
+              width: '44px',
+              height: '44px',
+              borderRadius: '50%',
+              border: 'none',
+              backgroundColor: 'rgba(255,255,255,0.15)',
+              backdropFilter: 'blur(8px)',
+              color: '#fff',
+              fontSize: '20px',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              transition: 'all 0.2s ease'
+            }}
+            onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.25)'}
+            onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.15)'}
+          >
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <line x1="18" y1="6" x2="6" y2="18"></line>
+              <line x1="6" y1="6" x2="18" y2="18"></line>
+            </svg>
+          </button>
+        )}
         <div style={{ display: 'inline-block', padding: '6px 16px', borderRadius: '20px', backgroundColor: isDocDetected ? '#00FF46' : 'rgba(255,255,255,0.2)', color: isDocDetected ? '#000' : '#fff', fontSize: '12px', fontWeight: 'bold' }}>
           {isDocDetected ? 'READY TO SCAN' : 'POSITION DOCUMENT'}
         </div>
