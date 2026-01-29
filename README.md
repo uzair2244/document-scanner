@@ -1,7 +1,6 @@
 # @uziee/document-scanner
 
 [![npm version](https://img.shields.io/npm/v/@uziee/document-scanner.svg)](https://www.npmjs.com/package/@uziee/document-scanner)
-[![license](https://img.shields.io/npm/l/@uziee/document-scanner.svg)](https://github.com/uzair2244/document-scanner/blob/main/LICENSE)
 
 A high-performance, lightweight React component for real-time document detection, stability filtering, and perspective-corrected scanning.
 
