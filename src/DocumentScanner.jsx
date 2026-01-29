@@ -1,22 +1,27 @@
 import React, { useRef, useEffect, useState } from 'react';
+import { MobileDocumentDetector } from './utils/MobileDocumentDetector';
 
 const DocumentScanner = ({ onCapture }) => {
   const videoRef = useRef(null);
   const canvasRef = useRef(null);
-  const procCanvasRef = useRef(null);
-  
+
   const [isDocDetected, setIsDocDetected] = useState(false);
   const [points, setPoints] = useState(null);
-  
+
   // New State for Batch Processing
   const [scannedImages, setScannedImages] = useState([]);
-  
+
+  // Use the new texture-aware detector
+  const detectorRef = useRef(null);
   const lastValidCorners = useRef(null);
-  const cornerBuffer = useRef([]);
   const stabilityCounter = useRef(0);
 
   useEffect(() => {
-    if (!procCanvasRef.current) procCanvasRef.current = document.createElement('canvas');
+    // Initialize the MobileDocumentDetector
+    if (!detectorRef.current) {
+      detectorRef.current = new MobileDocumentDetector();
+    }
+
     let animationId = null;
 
     async function startCamera() {
@@ -38,15 +43,17 @@ const DocumentScanner = ({ onCapture }) => {
         const canvas = canvasRef.current;
         if (!canvas) return;
         const ctx = canvas.getContext('2d');
-        
+
         if (canvas.width !== video.videoWidth) {
           canvas.width = video.videoWidth;
           canvas.height = video.videoHeight;
         }
-        
+
         ctx.drawImage(video, 0, 0);
-        const raw = strictDocumentDetection(video);
-        
+
+        // Use the new texture-aware detector
+        const raw = detectorRef.current.detect(video, 0.18);
+
         if (raw) {
           if (lastValidCorners.current && isClose(raw, lastValidCorners.current)) {
             stabilityCounter.current = Math.min(15, stabilityCounter.current + 1);
@@ -54,14 +61,11 @@ const DocumentScanner = ({ onCapture }) => {
             stabilityCounter.current = 0;
           }
 
-          cornerBuffer.current.push(raw);
-          if (cornerBuffer.current.length > 10) cornerBuffer.current.shift();
-          const averaged = averagePoints(cornerBuffer.current);
-          lastValidCorners.current = averaged;
-          
+          lastValidCorners.current = raw;
+
           if (stabilityCounter.current > 5) {
             setIsDocDetected(true);
-            setPoints(averaged);
+            setPoints(raw);
           }
         } else {
           stabilityCounter.current = Math.max(0, stabilityCounter.current - 2);
@@ -76,56 +80,19 @@ const DocumentScanner = ({ onCapture }) => {
     }
 
     startCamera();
-    return () => cancelAnimationFrame(animationId);
+    return () => {
+      cancelAnimationFrame(animationId);
+      // Reset detector on unmount
+      if (detectorRef.current) {
+        detectorRef.current.reset();
+      }
+    };
   }, []);
 
-  // --- Logic Helpers (Kept from your original) ---
+  // --- Logic Helpers ---
   const isClose = (c1, c2) => {
     const dist = Math.abs(c1.tl[0] - c2.tl[0]) + Math.abs(c1.tl[1] - c2.tl[1]);
     return dist < 50;
-  };
-
-  const strictDocumentDetection = (video) => {
-    const scale = 0.15;
-    const w = Math.floor(video.videoWidth * scale);
-    const h = Math.floor(video.videoHeight * scale);
-    const pCtx = procCanvasRef.current.getContext('2d');
-    procCanvasRef.current.width = w; procCanvasRef.current.height = h;
-    pCtx.drawImage(video, 0, 0, w, h);
-    const data = pCtx.getImageData(0, 0, w, h).data;
-    let tl = [w,h], tr = [0,h], bl = [w,0], br = [0,0];
-    let hits = 0;
-    for (let y = 10; y < h-10; y++) {
-      for (let x = 10; x < w-10; x++) {
-        const i = (y * w + x) * 4;
-        const r = data[i], g = data[i+1], b = data[i+2];
-        const isWhite = r > 180 && g > 180 && b > 170 && Math.abs(r - g) < 25 && Math.abs(g - b) < 25;
-        if (isWhite) {
-          hits++;
-          if (x + y < tl[0] + tl[1]) tl = [x, y];
-          if (x - y > tr[0] - tr[1]) tr = [x, y];
-          if (x - y < bl[0] - bl[1]) bl = [x, y];
-          if (x + y > br[0] + br[1]) br = [x, y];
-        }
-      }
-    }
-    const width = tr[0] - tl[0]; const height = bl[1] - tl[1];
-    if (hits < (w * h * 0.08) || width < w * 0.3 || height < h * 0.3) return null;
-    return {
-      tl: [tl[0]/scale, tl[1]/scale], tr: [tr[0]/scale, tr[1]/scale],
-      bl: [bl[0]/scale, bl[1]/scale], br: [br[0]/scale, br[1]/scale]
-    };
-  };
-
-  const averagePoints = (buf) => {
-    const avg = { tl: [0,0], tr: [0,0], bl: [0,0], br: [0,0] };
-    buf.forEach(c => {
-      ['tl', 'tr', 'bl', 'br'].forEach(k => {
-        avg[k][0] += c[k][0] / buf.length;
-        avg[k][1] += c[k][1] / buf.length;
-      });
-    });
-    return avg;
   };
 
   // --- Actions ---
@@ -134,31 +101,31 @@ const DocumentScanner = ({ onCapture }) => {
     const c = lastValidCorners.current;
     if (!video || !c) return;
 
-    const outW = 1240, outH = 1754; 
+    const outW = 1240, outH = 1754;
     const resCanvas = document.createElement('canvas');
     resCanvas.width = outW; resCanvas.height = outH;
     const rCtx = resCanvas.getContext('2d');
     const tempCanvas = document.createElement('canvas');
     tempCanvas.width = video.videoWidth; tempCanvas.height = video.videoHeight;
     tempCanvas.getContext('2d').drawImage(video, 0, 0);
-    const imgData = tempCanvas.getContext('2d').getImageData(0,0, tempCanvas.width, tempCanvas.height);
+    const imgData = tempCanvas.getContext('2d').getImageData(0, 0, tempCanvas.width, tempCanvas.height);
     const outData = rCtx.createImageData(outW, outH);
     for (let y = 0; y < outH; y++) {
       for (let x = 0; x < outW; x++) {
         const u = x / outW, v = y / outH;
-        const px = Math.floor((1-u)*(1-v)*c.tl[0] + u*(1-v)*c.tr[0] + (1-u)*v*c.bl[0] + u*v*c.br[0]);
-        const py = Math.floor((1-u)*(1-v)*c.tl[1] + u*(1-v)*c.tr[1] + (1-u)*v*c.bl[1] + u*v*c.br[1]);
+        const px = Math.floor((1 - u) * (1 - v) * c.tl[0] + u * (1 - v) * c.tr[0] + (1 - u) * v * c.bl[0] + u * v * c.br[0]);
+        const py = Math.floor((1 - u) * (1 - v) * c.tl[1] + u * (1 - v) * c.tr[1] + (1 - u) * v * c.bl[1] + u * v * c.br[1]);
         const outIdx = (y * outW + x) * 4;
         const srcIdx = (py * tempCanvas.width + px) * 4;
         outData.data[outIdx] = imgData.data[srcIdx];
-        outData.data[outIdx+1] = imgData.data[srcIdx+1];
-        outData.data[outIdx+2] = imgData.data[srcIdx+2];
-        outData.data[outIdx+3] = 255;
+        outData.data[outIdx + 1] = imgData.data[srcIdx + 1];
+        outData.data[outIdx + 2] = imgData.data[srcIdx + 2];
+        outData.data[outIdx + 3] = 255;
       }
     }
     rCtx.putImageData(outData, 0, 0);
     const dataUrl = resCanvas.toDataURL('image/jpeg', 0.92);
-    
+
     // Save to list instead of firing callback
     setScannedImages(prev => [...prev, dataUrl]);
   };
@@ -179,7 +146,7 @@ const DocumentScanner = ({ onCapture }) => {
 
   return (
     <div style={{
-      position: 'fixed', inset: 0, backgroundColor: '#000', 
+      position: 'fixed', inset: 0, backgroundColor: '#000',
       fontFamily: 'system-ui, -apple-system, sans-serif', overflow: 'hidden'
     }}>
       <video ref={videoRef} style={{ display: 'none' }} playsInline muted />
@@ -203,11 +170,11 @@ const DocumentScanner = ({ onCapture }) => {
 
       {/* Bottom Controls */}
       <div style={{ position: 'absolute', bottom: 0, width: '100%', height: '160px', background: 'linear-gradient(transparent, rgba(0,0,0,0.8))', display: 'flex', alignItems: 'center', justifyContent: 'space-around', zIndex: 20 }}>
-        
+
         {/* Thumbnail Clickable to Return Images */}
-        <div 
+        <div
           onClick={handleFinish}
-          style={{ 
+          style={{
             width: '64px', height: '64px', position: 'relative', cursor: scannedImages.length > 0 ? 'pointer' : 'default',
             opacity: scannedImages.length > 0 ? 1 : 0.4, transition: 'transform 0.2s'
           }}

@@ -6,7 +6,7 @@ export default defineConfig({
   server: {
     port: 5173,
     open: true,
-    allowedHosts: ['upwardly-confessable-francisco.ngrok-free.dev'],
+    allowedHosts: ['suffusive-deputable-hilde.ngrok-free.dev'],
   },
   define: {
     'process.env': '{}',
