@@ -46,5 +46,9 @@
   "repository": {
     "type": "git",
     "url": "https://github.com/uzair2244/document-scanner.git"
+  },
+  "homepage": "https://document-scanner.vercel.app",
+  "bugs": {
+    "url": "https://github.com/uzair2244/document-scanner/issues"
   }
 }

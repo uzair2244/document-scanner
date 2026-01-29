@@ -1,6 +1,13 @@
 # @uziee/document-scanner
 
-A high-performance, lightweight React component for real-time document detection, stability filtering, and perspective-corrected scanning. 
+[![npm version](https://img.shields.io/npm/v/@uziee/document-scanner.svg)](https://www.npmjs.com/package/@uziee/document-scanner)
+[![license](https://img.shields.io/npm/l/@uziee/document-scanner.svg)](https://github.com/uzair2244/document-scanner/blob/main/LICENSE)
+
+A high-performance, lightweight React component for real-time document detection, stability filtering, and perspective-corrected scanning.
+
+## 🔗 [Live Demo](https://document-scanner.vercel.app)
+
+> **Try it now:** [https://document-scanner.vercel.app](https://document-scanner.vercel.app)
 
 ## 🚀 Key Features
 
@@ -9,6 +16,7 @@ A high-performance, lightweight React component for real-time document detection
 * **Bilinear Warp Transformation:** Automatically "flattens" skewed documents into a clean, rectangular A4-proportioned image.
 * **Zero Dependencies:** Runs entirely on native Canvas API—no massive WASM files or external ML models.
 * **High-Res Capture:** Analyzes a low-res stream for performance but captures the final document from the full-resolution camera feed.
+* **Close Button:** Users can exit the scanner anytime without capturing.
 
 ---
 
