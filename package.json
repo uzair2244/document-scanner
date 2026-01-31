@@ -39,7 +39,16 @@
     "document",
     "scanner",
     "opencv",
-    "camera"
+    "camera",
+    "edge-detection",
+    "perspective-correction",
+    "image-processing",
+    "webcam",
+    "scanning",
+    "computer-vision",
+    "mobile",
+    "crop",
+    "scan"
   ],
   "author": "Uzair Shahid",
   "license": "None",
